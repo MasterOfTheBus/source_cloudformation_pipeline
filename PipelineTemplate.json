@@ -224,9 +224,9 @@
                                     "Provider": "CloudFormation",
                                     "Version": "1"
                                 },
-                                "InputArtifacts": {
+                                "InputArtifacts": [{
                                     "Name": "cloudformation"
-                                },
+                                }],
                                 "Configuration": {
                                     "ActionMode": "REPLACE_ON_FAILURE",
                                     "RoleArn": { "Fn::GetAtt": ["CloudFormationRole", "Arn"]},
