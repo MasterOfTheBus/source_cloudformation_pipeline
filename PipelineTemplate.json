@@ -1,0 +1,268 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+        "SourceRepo": {
+            "Description": "The GitHub repo with the source code",
+            "Type": "String"
+        },
+        "ConnectionArn": {
+            "Description" : "The connection ARN to connect to the GitHub Repos",
+            "Type": "String"
+        },
+        "CodeBuildProjectName": {
+            "Description": "Name for CodeBuild project. Should not already exist",
+            "Type": "String"
+        },
+        "SourceBucket": {
+            "Description": "The bucket to store the built source artifacts",
+            "Type": "String"
+        },
+        "StackName": {
+            "Description": "The CloudFormation stack name",
+            "Type": "String"
+        },
+        "TemplateFileName": {
+            "Description": "The name of the CloudFormation template",
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "ArtifactStoreBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "VersioningConfiguration": {
+                    "Status": "Enabled"
+                }
+            }
+        },
+        "PipelineRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "codepipeline.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [{
+                    "PolicyName": "CodePipelinePolicy",
+                    "PolicyDocument": {
+                        "Version": "2012-10-17",
+                        "Statement": [{
+                            "Effect": "Allow",
+                            "Action": [
+                                "s3:*",
+                                "cloudformation:CreateStack",
+                                "cloudformation:DescribeStacks",
+                                "cloudformation:DeleteStack",
+                                "cloudformation:UpdateStack",
+                                "cloudformation:CreateChangeSet",
+                                "cloudformation:ExecuteChangeSet",
+                                "cloudformation:DeleteChangeSet",
+                                "cloudformation:DescribeChangeSet",
+                                "cloudformation:SetStackPolicy",
+                                "iam:PassRole",
+                                "sns:Publish"
+                            ],
+                            "Resource": "*"
+                        }]
+                    }
+                }]
+            }
+        },
+        "CodeBuildRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "codebuild.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [{
+                    "PolicyName": "CodeBuildPolicy",
+                    "PolicyDocument": {
+                        "Version": "2012-10-17",
+                        "Statement": [{
+                            "Effect": "Allow",
+                            "Action": [
+                                "s3:*"
+                            ],
+                            "Resource": "*"
+                        }]
+                    }
+                }]
+            }
+        },
+        "CloudFormationRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "cloudformation.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [{
+                    "PolicyName": "CloudFormationPolicy",
+                    "PolicyDocument": {
+                        "Version": "2012-10-17",
+                        "Statement": [{
+                            "Effect": "Allow",
+                            "Action": [
+                                "lambda:*"
+                            ],
+                            "Resource": "*"
+                        }]
+                    }
+                }]
+            }
+        },
+        "Pipeline": {
+            "Type" : "AWS::CodePipeline::Pipeline",
+            "Properties": {
+                "Name": "SamplePipeline",
+                "ArtifactStore": {
+                    "Type": "S3",
+                    "Location": {"Ref": "ArtifactStoreBucket"}
+                },
+                "RoleArn": {"Fn::GetAtt": ["PipelineRole", "Arn"]},
+                "Stages": [
+                    {
+                        "Name": "GitHubSource",
+                        "Actions": [
+                            {
+                                "Name": "Source",
+                                "ActionTypeId": {
+                                    "Category": "Source",
+                                    "Owner": "AWS",
+                                    "Provider": "CodeStarSourceConnection",
+                                    "Version": "1"
+                                },
+                                "Configuration": {
+                                    "ConnectionArn": { "Ref": "ConnectionArn" },
+                                    "FullRepositoryId": { "Ref": "SourceRepo" },
+                                    "BranchName": "main"
+                                },
+                                "RunOrder": 1,
+                                "OutputArtifacts": [{
+                                    "Name": "source"
+                                }]
+                            }
+                        ]
+                    },
+                    {
+                        "Name": "BuildAndUpload",
+                        "Actions": [
+                            {
+                                "InputArtifacts": [
+                                    {
+                                        "Name": "source"
+                                    }
+                                ],
+                                "Name": "Build",
+                                "ActionTypeId": {
+                                    "Category": "Build",
+                                    "Owner": "AWS",
+                                    "Version": "1",
+                                    "Provider": "AWS CodeBuild"
+                                },
+                                "Configuration": {
+                                    "ProjectName": { "Ref": "CodeBuildProjectName" },
+                                    "PrimarySource": "source"
+                                },
+                                "OutputArtifacts": [{
+                                    "name": "cloudformation"
+                                }],
+                                "RunOrder": 1
+                            }
+                        ]
+                    },
+                    {
+                        "Name": "CloudFormationDeploy",
+                        "Actions": [
+                            {
+                                "Name": "CreateStack",
+                                "ActionTypeId": {
+                                    "Category": "Deploy",
+                                    "Owner": "AWS",
+                                    "Provider": "CloudFormation",
+                                    "Version": "1"
+                                },
+                                "InputArtifacts": {
+                                    "name": "cloudformation"
+                                },
+                                "Configuration": {
+                                    "ActionMode": "REPLACE_ON_FAILURE",
+                                    "RoleArn": { "Fn::GetAtt": ["CloudFormationRole", "Arn"]},
+                                    "StackName": { "Ref": "StackName" },
+                                    "TemplatePath": { "Sub": "TemplateSource::${TemplateFileName}" }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "BuildConfig": {
+            "Type": "AWS::CodeBuild::Project",
+            "Properties": {
+              "name": { "Ref": "CodeBuildProjectName" },
+              "source": {
+                "Type": "CODEPIPELINE",
+                "SourceIdentifier": "source"
+              },
+              "Artifacts": {
+                "Type": "CODEPIPELINE",
+                "ArtifactIdentifier": "cloudformation"
+              },
+              "secondaryArtifacts": [
+                {
+                  "type": "S3",
+                  "location": {"Ref": "ArtifactStoreBucket"},
+                  "artifactIdentifier": "sourceArtifact"
+                }
+              ],
+              "environment": {
+                "type": "LINUX_CONTAINER",
+                "image": "aws/codebuild/standard:4.0",
+                "computeType": "BUILD_GENERAL1_SMALL"
+              },
+              "serviceRole": {"Fn::GetAtt": ["CodeBuildRole", "Arn"]}
+            }
+        }
+    }
+}
