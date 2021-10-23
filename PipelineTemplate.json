@@ -193,7 +193,7 @@
                         "Actions": [
                             {
                                 "InputArtifacts": [{
-                                        "Name": "source"
+                                    "Name": "source"
                                 }],
                                 "Name": "Build",
                                 "ActionTypeId": {
@@ -207,7 +207,7 @@
                                     "PrimarySource": "source"
                                 },
                                 "OutputArtifacts": [{
-                                    "name": "cloudformation"
+                                    "Name": "cloudformation"
                                 }],
                                 "RunOrder": 1
                             }
@@ -225,7 +225,7 @@
                                     "Version": "1"
                                 },
                                 "InputArtifacts": {
-                                    "name": "cloudformation"
+                                    "Name": "cloudformation"
                                 },
                                 "Configuration": {
                                     "ActionMode": "REPLACE_ON_FAILURE",
@@ -242,8 +242,8 @@
         "BuildConfig": {
             "Type": "AWS::CodeBuild::Project",
             "Properties": {
-              "name": { "Ref": "CodeBuildProjectName" },
-              "source": {
+              "Name": { "Ref": "CodeBuildProjectName" },
+              "Source": {
                 "Type": "CODEPIPELINE",
                 "SourceIdentifier": "source"
               },
@@ -251,19 +251,19 @@
                 "Type": "CODEPIPELINE",
                 "ArtifactIdentifier": "cloudformation"
               },
-              "secondaryArtifacts": [
+              "SecondaryArtifacts": [
                 {
-                  "type": "S3",
-                  "location": {"Ref": "ArtifactStoreBucket"},
-                  "artifactIdentifier": "sourceArtifact"
+                  "Type": "S3",
+                  "Location": {"Ref": "ArtifactStoreBucket"},
+                  "ArtifactIdentifier": "sourceArtifact"
                 }
               ],
-              "environment": {
-                "type": "LINUX_CONTAINER",
-                "image": "aws/codebuild/standard:4.0",
-                "computeType": "BUILD_GENERAL1_SMALL"
+              "Environment": {
+                "Type": "LINUX_CONTAINER",
+                "Image": "aws/codebuild/standard:4.0",
+                "ComputeType": "BUILD_GENERAL1_SMALL"
               },
-              "serviceRole": {"Fn::GetAtt": ["CodeBuildRole", "Arn"]}
+              "ServiceRole": {"Fn::GetAtt": ["CodeBuildRole", "Arn"]}
             }
         }
     }
