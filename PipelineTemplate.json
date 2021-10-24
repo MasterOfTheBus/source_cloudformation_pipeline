@@ -200,7 +200,7 @@
                                     "Category": "Build",
                                     "Owner": "AWS",
                                     "Version": "1",
-                                    "Provider": "AWS CodeBuild"
+                                    "Provider": "CodeBuild"
                                 },
                                 "Configuration": {
                                     "ProjectName": { "Ref": "CodeBuildProjectName" },
