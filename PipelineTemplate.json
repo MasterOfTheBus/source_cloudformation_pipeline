@@ -177,7 +177,27 @@
                         "Statement": [{
                             "Effect": "Allow",
                             "Action": [
-                                "lambda:*"
+                                "lambda:CreateFunction",
+                                "lambda:DeleteFunction",
+                                "lambda:GetFunction",
+                                "lambda:GetPolicy",
+                                "lambda:ListFunctions",
+                                "lambda:PublishVersion",
+                                "lambda:UpdateFunctionCode",
+                                "iam:GetRole",
+                                "iam:CreateRole",
+                                "iam:CreatePolicy",
+                                "iam:CreatePolicyVersion",
+                                "iam:AttachRolePolicy",
+                                "iam:DeleteRole",
+                                "iam:DeleteRolePolicy",
+                                "iam:GetPolicy",
+                                "iam:GetRolePolicy",
+                                "iam:ListAttachedRolePolicies",
+                                "iam:ListRolePolicies",
+                                "iam:PutRolePolicy",
+                                "iam:PassRole",
+                                "s3:GetObject"
                             ],
                             "Resource": "*"
                         }]
@@ -259,6 +279,7 @@
                                 }],
                                 "Configuration": {
                                     "ActionMode": "REPLACE_ON_FAILURE",
+                                    "Capabilities": "CAPABILITY_NAMED_IAM",
                                     "RoleArn": { "Fn::GetAtt": ["CloudFormationRole", "Arn"]},
                                     "StackName": { "Ref": "StackName" },
                                     "TemplatePath": { "Fn::Sub": [
