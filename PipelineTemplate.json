@@ -139,7 +139,10 @@
                         "Statement": [{
                             "Effect": "Allow",
                             "Action": [
-                                "s3:*"
+                                "s3:*",
+                                "logs:CreateLogStream",
+                                "logs:PutLogEvents",
+                                "logs:CreateLogGroup"
                             ],
                             "Resource": "*"
                         }]
