@@ -59,30 +59,47 @@
                     ]
                 },
                 "Path": "/",
-                "Policies": [{
-                    "PolicyName": "CodePipelinePolicy",
-                    "PolicyDocument": {
-                        "Version": "2012-10-17",
-                        "Statement": [{
-                            "Effect": "Allow",
-                            "Action": [
-                                "s3:*",
-                                "cloudformation:CreateStack",
-                                "cloudformation:DescribeStacks",
-                                "cloudformation:DeleteStack",
-                                "cloudformation:UpdateStack",
-                                "cloudformation:CreateChangeSet",
-                                "cloudformation:ExecuteChangeSet",
-                                "cloudformation:DeleteChangeSet",
-                                "cloudformation:DescribeChangeSet",
-                                "cloudformation:SetStackPolicy",
-                                "iam:PassRole",
-                                "sns:Publish"
-                            ],
-                            "Resource": "*"
-                        }]
+                "Policies": [
+                    {
+                        "PolicyName": "CodePipelinePolicy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [{
+                                "Effect": "Allow",
+                                "Action": [
+                                    "s3:*",
+                                    "cloudformation:CreateStack",
+                                    "cloudformation:DescribeStacks",
+                                    "cloudformation:DeleteStack",
+                                    "cloudformation:UpdateStack",
+                                    "cloudformation:CreateChangeSet",
+                                    "cloudformation:ExecuteChangeSet",
+                                    "cloudformation:DeleteChangeSet",
+                                    "cloudformation:DescribeChangeSet",
+                                    "cloudformation:SetStackPolicy",
+                                    "iam:PassRole",
+                                    "sns:Publish",
+                                    "codestar-connections:PassConnection"
+                                ],
+                                "Resource": "*"
+                            }]
+                        }
+                    },
+                    {
+                        "PolicyName": "CodePipelineCodeStarPolicy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [{
+                                "Effect": "Allow",
+                                "Action": [
+                                    "codestar-connections:UseConnection"
+                                ],
+                                "Resource": { "Ref": "ConnectionArn" },
+                                "Condition": {"ForAllValues:StringEquals": {"codestar-connections:ProviderPermissionsRequired": "read_only"}}
+                            }]
+                        }
                     }
-                }]
+                ]
             }
         },
         "CodeBuildRole": {
