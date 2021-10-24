@@ -207,7 +207,7 @@
                                     "PrimarySource": "source"
                                 },
                                 "OutputArtifacts": [{
-                                    "Name": "cloudformation"
+                                    "Name": "CFNArtifact"
                                 }],
                                 "RunOrder": 1
                             }
@@ -225,13 +225,15 @@
                                     "Version": "1"
                                 },
                                 "InputArtifacts": [{
-                                    "Name": "cloudformation"
+                                    "Name": "CFNArtifact"
                                 }],
                                 "Configuration": {
                                     "ActionMode": "REPLACE_ON_FAILURE",
                                     "RoleArn": { "Fn::GetAtt": ["CloudFormationRole", "Arn"]},
                                     "StackName": { "Ref": "StackName" },
-                                    "TemplatePath": { "Sub": "TemplateSource::${TemplateFileName}" }
+                                    "TemplatePath": { "Fn::Sub": [
+                                        "CFNArtifact::${FileName}", { "FileName": { "Ref": "TemplateFileName"}}
+                                    ]}
                                 }
                             }
                         ]
@@ -249,7 +251,7 @@
               },
               "Artifacts": {
                 "Type": "CODEPIPELINE",
-                "ArtifactIdentifier": "cloudformation"
+                "ArtifactIdentifier": "CFNArtifact"
               },
               "SecondaryArtifacts": [
                 {
