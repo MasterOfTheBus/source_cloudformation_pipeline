@@ -79,7 +79,17 @@
                                     "cloudformation:SetStackPolicy",
                                     "iam:PassRole",
                                     "sns:Publish",
-                                    "codestar-connections:PassConnection"
+                                    "codebuild:StartBuild",
+                                    "codebuild:StopBuild",
+                                    "codebuild:StartBuildBatch",
+                                    "codebuild:StopBuildBatch",
+                                    "codebuild:RetryBuild",
+                                    "codebuild:RetryBuildBatch",
+                                    "codebuild:BatchGet*",
+                                    "codebuild:GetResourcePolicy",
+                                    "codebuild:DescribeTestCases",
+                                    "codebuild:DescribeCodeCoverages",
+                                    "codebuild:List*",
                                 ],
                                 "Resource": "*"
                             }]
