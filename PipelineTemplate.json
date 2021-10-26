@@ -13,10 +13,6 @@
             "Description": "Name for CodeBuild project. Should not already exist",
             "Type": "String"
         },
-        "SourceBucket": {
-            "Description": "The bucket to store the built source artifacts",
-            "Type": "String"
-        },
         "StackName": {
             "Description": "The CloudFormation stack name",
             "Type": "String"
@@ -36,6 +32,20 @@
             "Properties": {
                 "VersioningConfiguration": {
                     "Status": "Enabled"
+                }
+            }
+        },
+        "SourceBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "VersioningConfiguration": {
+                    "Status": "Enabled"
+                },
+                "PublicAccessBlockConfiguration": {
+                      "BlockPublicAcls" : true,
+                      "BlockPublicPolicy" : true,
+                      "IgnorePublicAcls" : true,
+                      "RestrictPublicBuckets" : true
                 }
             }
         },
@@ -256,9 +266,14 @@
                                     "ProjectName": { "Ref": "CodeBuildProjectName" },
                                     "PrimarySource": "source"
                                 },
-                                "OutputArtifacts": [{
-                                    "Name": "CFNArtifact"
-                                }],
+                                "OutputArtifacts": [
+                                    {
+                                        "Name": "CFNArtifact"
+                                    },
+                                    {
+                                        "Name": "SourceArtifact"
+                                    }
+                                ],
                                 "RunOrder": 1
                             }
                         ]
@@ -283,7 +298,12 @@
                                     "RoleArn": { "Fn::GetAtt": ["CloudFormationRole", "Arn"]},
                                     "StackName": { "Ref": "StackName" },
                                     "TemplatePath": { "Fn::Sub": [
-                                        "CFNArtifact::${FileName}", { "FileName": { "Ref": "TemplateFileName"}}
+                                        "CFNArtifact::${FileName}", { "FileName": { "Ref": "TemplateFileName" }}
+                                    ]},
+                                    "ParameterOverrides": { "Fn::Sub": [
+                                        "{\"SourceBucket\": \"${BucketName}\", \"SourceKey\": \"${KeyName}\"}",
+                                            { "BucketName": { "Ref": "SourceBucket" }},
+                                            { "KeyName": { "Fn::GetArtifactAtt": ["SourceArtifact", "ObjectKey"]}}
                                     ]}
                                 }
                             }
@@ -307,7 +327,7 @@
               "SecondaryArtifacts": [
                 {
                   "Type": "S3",
-                  "Location": {"Ref": "ArtifactStoreBucket"},
+                  "Location": {"Ref": "SourceBucket"},
                   "ArtifactIdentifier": "sourceArtifact"
                 }
               ],
