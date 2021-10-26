@@ -32,14 +32,6 @@
             "Properties": {
                 "VersioningConfiguration": {
                     "Status": "Enabled"
-                }
-            }
-        },
-        "SourceBucket": {
-            "Type": "AWS::S3::Bucket",
-            "Properties": {
-                "VersioningConfiguration": {
-                    "Status": "Enabled"
                 },
                 "PublicAccessBlockConfiguration": {
                       "BlockPublicAcls" : true,
@@ -289,9 +281,14 @@
                                     "Provider": "CloudFormation",
                                     "Version": "1"
                                 },
-                                "InputArtifacts": [{
-                                    "Name": "CFNArtifact"
-                                }],
+                                "InputArtifacts": [
+                                    {
+                                        "Name": "CFNArtifact"
+                                    },
+                                    {
+                                        "Name": "SourceArtifact"
+                                    }
+                                ],
                                 "Configuration": {
                                     "ActionMode": "REPLACE_ON_FAILURE",
                                     "Capabilities": "CAPABILITY_NAMED_IAM",
@@ -301,9 +298,8 @@
                                         "CFNArtifact::${FileName}", { "FileName": { "Ref": "TemplateFileName" }}
                                     ]},
                                     "ParameterOverrides": { "Fn::Sub": [
-                                        "{\"SourceBucket\": \"${BucketName}\", \"SourceKey\": \"${KeyName}\"}",
-                                            { "BucketName": { "Ref": "SourceBucket" }},
-                                            { "KeyName": { "Fn::GetArtifactAtt": ["SourceArtifact", "ObjectKey"]}}
+                                        "{\"SourceBucket\": \"${BucketName}\", \"SourceKey\": \"{ \"Fn::GetArtifactAtt\": [\"SourceArtifact\", \"ObjectKey\"]}\"}",
+                                            { "BucketName": { "Ref": "ArtifactStoreBucket" }}
                                     ]}
                                 }
                             }
@@ -327,8 +323,8 @@
               "SecondaryArtifacts": [
                 {
                   "Type": "S3",
-                  "Location": {"Ref": "SourceBucket"},
-                  "ArtifactIdentifier": "sourceArtifact"
+                  "Location": {"Ref": "ArtifactStoreBucket"},
+                  "ArtifactIdentifier": "SourceArtifact"
                 }
               ],
               "Environment": {
