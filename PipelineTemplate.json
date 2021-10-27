@@ -256,9 +256,14 @@
                                     "ProjectName": { "Ref": "CodeBuildProjectName" },
                                     "PrimarySource": "source"
                                 },
-                                "OutputArtifacts": [{
-                                    "Name": "CFNArtifact"
-                                }],
+                                "OutputArtifacts": [
+                                    {
+                                        "Name": "CFNArtifact"
+                                    },
+                                    {
+                                        "Name": "sourceArtifact"
+                                    }
+                                ],
                                 "RunOrder": 1
                             }
                         ]
@@ -274,9 +279,14 @@
                                     "Provider": "CloudFormation",
                                     "Version": "1"
                                 },
-                                "InputArtifacts": [{
-                                    "Name": "CFNArtifact"
-                                }],
+                                "InputArtifacts": [
+                                    {
+                                        "Name": "CFNArtifact"
+                                    },
+                                    {
+                                        "Name": "sourceArtifact"
+                                    }
+                                ],
                                 "Configuration": {
                                     "ActionMode": "REPLACE_ON_FAILURE",
                                     "Capabilities": "CAPABILITY_NAMED_IAM",
@@ -284,7 +294,8 @@
                                     "StackName": { "Ref": "StackName" },
                                     "TemplatePath": { "Fn::Sub": [
                                         "CFNArtifact::${FileName}", { "FileName": { "Ref": "TemplateFileName"}}
-                                    ]}
+                                    ]},
+                                    "ParameterOverrides": "{\"SourceBucket\": { \"Fn::GetArtifactAtt\": [\"sourceArtifact\", \"BucketName\"]}, \"SourceKey\": { \"Fn::GetArtifactAtt\": [\"sourceArtifact\", \"ObjectKey\"]}}"
                                 }
                             }
                         ]
